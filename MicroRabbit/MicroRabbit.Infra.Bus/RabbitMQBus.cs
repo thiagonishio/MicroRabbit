@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MicroRabbit.Infra.Bus
@@ -52,7 +53,7 @@ namespace MicroRabbit.Infra.Bus
 
         }
 
-        public void Subscribe<T, TH>()
+        public void Subscribe<T, TH>(CancellationToken cancellationToken = default)
             where T : Event
             where TH : IEventHandler<T>
         {

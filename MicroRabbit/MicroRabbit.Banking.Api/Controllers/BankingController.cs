@@ -24,7 +24,8 @@ namespace MicroRabbit.Banking.Api.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Account>> Get()
         {
-            return Ok(_accountService.GetAccounts());
+            var accounts = _accountService.GetAccounts();
+            return Ok(accounts);
         }
 
         [HttpPost]

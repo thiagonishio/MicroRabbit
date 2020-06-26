@@ -3,6 +3,7 @@ using MicroRabbit.Domain.Core.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MicroRabbit.Domain.Core.Bus
@@ -13,7 +14,7 @@ namespace MicroRabbit.Domain.Core.Bus
 
         void Publish<T>(T @event) where T : Event;
 
-        void Subscribe<T, TH>()
+        void Subscribe<T, TH>(CancellationToken cancellationToken = default)
             where T : Event
             where TH : IEventHandler<T>;
     }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using MicroRabbit.Domain.Core.Bus;
 using MicroRabbit.Infra.IoC;
+using MicroRabbit.Transfer.Api.Handler;
 using MicroRabbit.Transfer.Data.Context;
 using MicroRabbit.Transfer.Domain.EventHandlers;
 using MicroRabbit.Transfer.Domain.Events;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
@@ -53,11 +55,12 @@ namespace MicroRabbit.Transfer.Api
 
         private void RegisterServices(IServiceCollection services)
         {
+            services.AddSingleton<IHostedService, MessageHandler>();
             DependencyContainer.RegisterServices(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -79,7 +82,7 @@ namespace MicroRabbit.Transfer.Api
 
             app.UseMvc();
 
-            ConfigureEventBus(app);
+            //ConfigureEventBus(app);
         }
 
         private void ConfigureEventBus(IApplicationBuilder app)
