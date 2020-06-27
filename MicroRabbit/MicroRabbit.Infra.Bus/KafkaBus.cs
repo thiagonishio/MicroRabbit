@@ -5,12 +5,9 @@ using MicroRabbit.Domain.Core.Commands;
 using MicroRabbit.Domain.Core.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -100,18 +97,8 @@ namespace MicroRabbit.Infra.Bus
             using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
                 var eventName = typeof(T).Name;
-                consumer.Subscribe(eventName);
-                //var cancellationToken = new CancellationTokenSource();
 
-                //try
-                //{
-                //    var message = c.Consume(cts.Token);
-                //    ProcessEvent(eventName, message.Message.Value).ConfigureAwait(false);
-                //}
-                //catch (OperationCanceledException)
-                //{
-                //    c.Close();
-                //}
+                consumer.Subscribe(eventName);
 
                 try
                 {
@@ -130,9 +117,10 @@ namespace MicroRabbit.Infra.Bus
                             }
 
                             Console.WriteLine($"Received message at {consumeResult.TopicPartitionOffset}: {consumeResult.Message.Value}");
+                            ProcessEvent(eventName, consumeResult.Message.Value).ConfigureAwait(false);
 
-                            //if (consumeResult.Offset % commitPeriod == 0)
-                            //{
+                            if (consumeResult.Offset % commitPeriod == 0)
+                            {
                                 // The Commit method sends a "commit offsets" request to the Kafka
                                 // cluster and synchronously waits for the response. This is very
                                 // slow compared to the rate at which the consumer is capable of
@@ -141,14 +129,13 @@ namespace MicroRabbit.Infra.Bus
                                 // duplicate messages in the event of failure.
                                 try
                                 {
-                                    ProcessEvent(eventName, consumeResult.Message.Value).ConfigureAwait(false);
-                                    //consumer.Commit(consumeResult);
+                                    consumer.Commit(consumeResult);
                                 }
                                 catch (KafkaException e)
                                 {
                                     Console.WriteLine($"Commit error: {e.Error.Reason}");
                                 }
-                            //}
+                            }
                         }
                         catch (ConsumeException e)
                         {
@@ -166,7 +153,7 @@ namespace MicroRabbit.Infra.Bus
 
         private async Task ProcessEvent(string eventName, string message)
         {
-            if(_handlers.ContainsKey(eventName))
+            if (_handlers.ContainsKey(eventName))
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
