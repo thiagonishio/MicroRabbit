@@ -24,17 +24,17 @@ namespace MicroRabbit.Infra.IoC
         public static void RegisterServices(IServiceCollection services)
         {
             //Domain Bus
-            services.AddSingleton<IEventBus, RabbitMQBus>(sp =>
-            {
-                var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-                return new RabbitMQBus(sp.GetService<IMediator>(), scopeFactory);
-            });
-
-            //services.AddSingleton<IEventBus, KafkaBus>(sp =>
+            //services.AddSingleton<IEventBus, RabbitMQBus>(sp =>
             //{
             //    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-            //    return new KafkaBus(sp.GetService<IMediator>(), scopeFactory);
+            //    return new RabbitMQBus(sp.GetService<IMediator>(), scopeFactory);
             //});
+
+            services.AddSingleton<IEventBus, KafkaBus>(sp =>
+            {
+                var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+                return new KafkaBus(sp.GetService<IMediator>(), scopeFactory);
+            });
 
             //Subscriptions
             services.AddTransient<TransferEventHandler>();

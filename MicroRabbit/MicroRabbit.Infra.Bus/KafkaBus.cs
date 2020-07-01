@@ -35,18 +35,23 @@ namespace MicroRabbit.Infra.Bus
 
         public void Publish<T>(T @event) where T : Event
         {
-            var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
+            var config = new ProducerConfig
+            {
+                BootstrapServers = "localhost:9092",
+                EnableIdempotence = true
+            };
             var eventName = @event.GetType().Name;
             var message = JsonConvert.SerializeObject(@event);
 
+            //Enviando mensagem sem key
             using (var producer = new ProducerBuilder<Null, string>(config).Build())
             {
                 try
                 {
+                    // De forma assíncrona, retorna metadados sobre o Tópico e a partição que foi registrado a mensagem
                     var sendResult = producer
                                         .ProduceAsync(eventName, new Message<Null, string> { Value = message })
-                                            .GetAwaiter()
-                                                .GetResult();
+                                            .GetAwaiter().GetResult(); // Flush and close Producer
                 }
                 catch (ProduceException<Null, string> e)
                 {
@@ -87,8 +92,9 @@ namespace MicroRabbit.Infra.Bus
         {
             var conf = new ConsumerConfig
             {
-                GroupId = "test-consumer-group",
                 BootstrapServers = "localhost:9092",
+                GroupId = "test-consumer-group",
+                EnableAutoCommit = false,
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
 
